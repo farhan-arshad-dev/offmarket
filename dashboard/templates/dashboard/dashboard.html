@@ -1,65 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <title>Dashboard</title>
-
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <!-- Site Name -->
-      <a class="navbar-brand" href="{% url 'dashboard:dashboard' %}">
-        OffMarket
-      </a>
-
-      <!-- Registration / Login / Logout Buttons -->
-      <div class="d-flex gap-2">
-        {% if user.is_authenticated %}
-        <span class="navbar-text text-light me-3">
-          Hi, {{ user.first_name|default:user.username }}
-        </span>
-        <form method="post" action="{% url 'accounts:logout' %}" class="d-flex align-items-center m-0">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-outline-light btn-sm">
-            Logout
-          </button>
-        </form>
-
-        {% else %}
-        <a href="{% url 'accounts:login' %}"
-          class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center">
-          Login
-        </a>
-        <a href="{% url 'accounts:register' %}"
-          class="btn btn-primary btn-sm d-flex align-items-center justify-content-center">
-          Register
-        </a>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
-
-  <!-- Center Content -->
-  <div class="container">
-    <div class="row vh-100 align-items-center justify-content-center">
-      <div class="col text-center">
-        <h1 class="fw-bold text-dark">Dashboard</h1>
-        <p class="text-muted">Welcome to your dashboard</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bootstrap JS (optional) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
-  </script>
-
-</body>
-
+    <head>
+        <meta charset="UTF-8">
+        <title>Dashboard</title>
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+              rel="stylesheet">
+    </head>
+    <body class="bg-light">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <!-- Site Name -->
+                <a class="navbar-brand" href="{% url 'dashboard:dashboard' %}">OffMarket</a>
+                <!-- Registration / Login / Logout Buttons -->
+                <div class="d-flex gap-2">
+                    {% if user.is_authenticated %}
+                        <span class="navbar-text text-light me-3">Hi, {{ user.first_name|default:user.username }}</span>
+                        <form method="post"
+                              action="{% url 'accounts:logout' %}"
+                              class="d-flex align-items-center m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}"
+                           class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center">Login</a>
+                        <a href="{% url 'accounts:register' %}"
+                           class="btn btn-primary btn-sm d-flex align-items-center justify-content-center">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        <!-- Center Content -->
+        <div class="container">
+            <div class="row vh-100 align-items-center justify-content-center">
+                <div class="col text-center">
+                    <h1 class="fw-bold text-dark">Dashboard</h1>
+                    <p class="text-muted">Welcome to your dashboard</p>
+                </div>
+            </div>
+        </div>
+        <!-- Bootstrap JS (optional) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
 </html>

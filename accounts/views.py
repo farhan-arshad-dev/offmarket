@@ -10,7 +10,6 @@ class RegistrationView(CreateView):
     success_url = reverse_lazy('dashboard:dashboard')
 
     def form_valid(self, form):
-        # call super method to process the request e.g validate the use info and save in db.
         is_valid = super().form_valid(form)
         # After success of creating user, now can access the newly created use object via self.object
         user = self.object
