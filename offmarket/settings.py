@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "dashboard.apps.DashboardConfig",
+    "accounts.apps.AccountsConfig",
 
     "django.contrib.admin",
     "django.contrib.auth",
@@ -117,3 +118,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+# Centralize authentication-related navigation
+# Tells Django where to send the user after successful login, if no next parameter exists.
+LOGIN_REDIRECT_URL = 'dashboard:dashboard'
+# Tells Django where to send unauthenticated users when they try to access a protected view.
+LOGIN_URL = 'accounts:login'
+# Tells Django where to redirect after logout.
+LOGOUT_REDIRECT_URL = 'accounts:login'
