@@ -76,9 +76,13 @@ WSGI_APPLICATION = "offmarket.wsgi.application"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'offmarket_site',
+        'USER': 'offmarket',
+        'PASSWORD': 'offmarket-admin',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
