@@ -4,15 +4,21 @@
 
 {% block heading_text %}Create Account{% endblock %}
 
+{% block navbar_auth %}{% endblock %}
+
 {% block content %}
-    <form method="post" novalidate>
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit"
-                class="btn btn-success w-100 d-flex justify-content-center align-items-center">Sign Up</button>
-    </form>
+    <div class="d-flex justify-content-start">
+        <div class="col-md-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit"
+                        class="btn btn-success w-100 d-flex justify-content-center align-items-center">Sign Up</button>
+            </form>
+            <p class="text-center mt-3 mb-0">
+                Already have an account?
+                <a href="{% url 'accounts:login' %}">Login</a>
+            </p>
+        </div>
+    </div>
 {% endblock %}
-<p class="text-center mt-3 mb-0">
-    Already have an account?
-    <a href="{% url 'accounts:login' %}">Login</a>
-</p>
