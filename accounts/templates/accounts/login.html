@@ -1,7 +1,18 @@
-<h2>Login</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
-<a href="{% url 'accounts:register' %}">Don't have an account? Register</a>
+{% extends "base.html" %}
+
+{% block title %}Login | {{ block.super }}{% endblock %}
+
+{% block heading_text %}Login{% endblock %}
+
+{% block content %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit"
+                class="btn btn-success w-100 d-flex justify-content-center align-items-center">Login</button>
+    </form>
+
+    <p class="text-center mt-3 mb-0">
+        <a href="{% url 'accounts:register' %}">Don't have an account? Register</a>
+    </p>
+{% endblock %}

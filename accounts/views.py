@@ -1,7 +1,8 @@
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from django.contrib.auth import login
-from .forms import RegistrationForm
+from .forms import LoginForm, RegistrationForm
+from django.contrib.auth.views import LoginView, LogoutView as AuthLogoutView
 
 
 class RegistrationView(CreateView):
@@ -16,3 +17,12 @@ class RegistrationView(CreateView):
         # auto-login after signup
         login(self.request, user)
         return is_valid
+
+
+class LoginView(LoginView):
+    template_name = "accounts/login.html"
+    authentication_form = LoginForm
+
+
+class LogoutView(AuthLogoutView):
+    pass
