@@ -23,7 +23,7 @@
                 {% block navbar_auth %}
                     <div class="d-flex gap-2 align-items-center">
                         {% if user.is_authenticated %}
-                            <span class="navbar-text text-light me-3">Hi, {{ user.first_name|default:user.username }}</span>
+                            <span class="navbar-text text-light me-3">Hi, {{ user.first_name|default:user.email }}</span>
                             <form method="post" action="{% url 'accounts:logout' %}" class="m-0">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
