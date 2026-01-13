@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
+from accounts.models import Profile
+
 
 User = get_user_model()
 
@@ -24,3 +26,24 @@ class LoginForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+
+
+class ProfileForm(forms.ModelForm):
+
+    date_of_birth = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+
+    class Meta:
+        model = Profile
+        fields = ['profile_pic', 'full_name', 'date_of_birth',
+                  'gender', 'bio', 'phone_number']
