@@ -1,9 +1,21 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 
-from accounts.models import User
+from accounts.models import Profile
 
+User = get_user_model()
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = 'Profile'
+    fk_name = 'user'
+
+
+@admin.register(User)
 class UserAdmin(AuthUserAdmin):
+    inlines = [ProfileInline]
     list_display = ('email', 'is_staff')
     ordering = ('email',)
     search_fields = ('email',)
@@ -23,4 +35,4 @@ class UserAdmin(AuthUserAdmin):
     )
 
 
-admin.site.register(User, UserAdmin)
+admin.site.register(Profile)
