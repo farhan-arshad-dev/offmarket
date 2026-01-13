@@ -1,0 +1,6 @@
+[tool.isort]
+profile = "django"
+line_length = 88
+force_single_line = false
+combine_as_imports = true
+skip = ["migrations", ".venv"]

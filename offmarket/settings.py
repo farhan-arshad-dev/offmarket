@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -127,9 +128,11 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 # Centralize authentication-related navigation
-# Tells Django where to send the user after successful login, if no next parameter exists.
+# Tells Django where to send the user after successful login, if no next
+# parameter exists.
 LOGIN_REDIRECT_URL = 'dashboard:dashboard'
-# Tells Django where to send unauthenticated users when they try to access a protected view.
+# Tells Django where to send unauthenticated users when they try to access a
+# protected view.
 LOGIN_URL = 'accounts:login'
 # Tells Django where to redirect after logout.
 LOGOUT_REDIRECT_URL = 'accounts:login'

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
-from .models import User
+
+from accounts.models import User
 
 
 class UserAdmin(AuthUserAdmin):
@@ -10,7 +11,7 @@ class UserAdmin(AuthUserAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ("Important Dates", {'fields': ('last_login',)}),
+        ('Important Dates', {'fields': ('last_login',)}),
         ('Permissions', {'fields': ('is_superuser', 'is_staff',
          'is_active', 'groups', 'user_permissions')}),
     )
