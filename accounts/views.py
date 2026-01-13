@@ -12,7 +12,6 @@ class RegistrationView(CreateView):
 
     def form_valid(self, form):
         is_valid = super().form_valid(form)
-        # After success of creating user, now can access the newly created use object via self.object
         user = self.object
         # auto-login after signup
         login(self.request, user)

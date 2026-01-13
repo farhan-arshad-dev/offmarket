@@ -4,7 +4,6 @@ from .models import User
 
 
 class UserAdmin(AuthUserAdmin):
-    model = User
     list_display = ('email', 'is_staff')
     ordering = ('email',)
     search_fields = ('email',)
@@ -12,7 +11,7 @@ class UserAdmin(AuthUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ("Important Dates", {'fields': ('last_login',)}),
-        ('Permissions', {'fields': ('is_staff',
+        ('Permissions', {'fields': ('is_superuser', 'is_staff',
          'is_active', 'groups', 'user_permissions')}),
     )
 
