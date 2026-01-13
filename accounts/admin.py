@@ -3,7 +3,6 @@ from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 
 from accounts.models import User
 
-
 class UserAdmin(AuthUserAdmin):
     list_display = ('email', 'is_staff')
     ordering = ('email',)
