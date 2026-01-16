@@ -3,29 +3,22 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 from accounts.models import Profile
+from core.forms.mixins import BootstrapWidgetMixin
 
 
 User = get_user_model()
 
 
-class RegistrationForm(UserCreationForm):
+class RegistrationForm(BootstrapWidgetMixin, UserCreationForm):
     email = forms.EmailField(required=True)
 
     class Meta:
         model = User
         fields = ('email', 'password1', 'password2')
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
 
-
-class LoginForm(AuthenticationForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
+class LoginForm(BootstrapWidgetMixin, AuthenticationForm):
+    pass
 
 
 class ProfileForm(forms.ModelForm):
@@ -37,11 +30,6 @@ class ProfileForm(forms.ModelForm):
         }),
         required=False
     )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
 
     class Meta:
         model = Profile

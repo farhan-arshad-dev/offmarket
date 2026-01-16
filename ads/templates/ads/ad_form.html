@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Post your ad{% endblock %}
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <h4>Images</h4>
-        {{ image_formset.management_form }}
-        {% for form in image_formset %}{{ form.as_p }}{% endfor %}
-        <button type="submit">Save</button>
-    </form>
+    <div class="col-md-4">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <h4>Images</h4>
+            {{ image_formset.management_form }}
+            {% for form in image_formset %}{{ form.as_p }}{% endfor %}
+            <button type="submit">Save</button>
+        </form>
+    </div>
 {% endblock %}
