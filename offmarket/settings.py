@@ -150,3 +150,8 @@ LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'accounts:login'
 # Tells Django where to redirect after logout.
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# ads / image upload limits
+ADS_MAX_IMAGES_PER_AD = 20
+# max image size in MB
+ADS_MAX_IMAGE_SIZE_MB = 5

@@ -1,13 +1,14 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.core.validators import RegexValidator
 from django.db import models
 
 from accounts.managers import UserManager
+from core.validators import validate_phone
 
 
 def user_profile_pic_path(instance, filename):
     return f'profiles/user_{instance.user.id}/{filename}'
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = None
@@ -32,11 +33,6 @@ class Profile(models.Model):
         OTHER = 'O', 'Other'
         PREFER_NOT_TO_SAY = 'N', 'Prefer not to say'
 
-    phone_regex = RegexValidator(
-        regex=r'^\+?[1-9]\d{7,14}$',
-        message='Enter a valid international phone number.'
-    )
-
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -58,7 +54,7 @@ class Profile(models.Model):
     )
     bio = models.TextField(blank=True, max_length=200)
     phone_number = models.CharField(
-        validators=[phone_regex],
+        validators=[validate_phone],
         max_length=16,
         blank=True,
         null=True

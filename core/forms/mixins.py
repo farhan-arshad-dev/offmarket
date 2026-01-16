@@ -1,4 +1,30 @@
+from django import forms
+
+
 class BootstrapWidgetMixin:
+    """
+    Automatically adds Bootstrap 5 classes to Django form widgets.
+    """
+
+    bootstrap_widget_classes = {
+        forms.TextInput: 'form-control',
+        forms.EmailInput: 'form-control',
+        forms.URLInput: 'form-control',
+        forms.NumberInput: 'form-control',
+        forms.PasswordInput: 'form-control',
+        forms.Textarea: 'form-control',
+        forms.DateInput: 'form-control',
+        forms.DateTimeInput: 'form-control',
+        forms.TimeInput: 'form-control',
+        forms.Select: 'form-select',
+        forms.SelectMultiple: 'form-select',
+        forms.FileInput: 'form-control',
+        forms.ClearableFileInput: 'form-control',
+        forms.CheckboxInput: 'form-check-input',
+        forms.RadioSelect: 'form-check-input',
+        forms.CheckboxSelectMultiple: 'form-check-input',
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -6,22 +32,18 @@ class BootstrapWidgetMixin:
         if not hasattr(self, 'fields') or self.fields is None:
             return
 
-        for field in self.fields.values():
+        for field_name, field in self.fields.items():
             widget = field.widget
-            widget_class = widget.__class__.__name__
 
-            if widget_class in (
-                'TextInput', 'EmailInput', 'NumberInput',
-                'URLInput', 'PasswordInput', 'Textarea',
-                'Select', 'DateInput'
-            ):
-                widget.attrs.setdefault('class', '')
-                widget.attrs['class'] += ' form-control'
+            if widget.is_hidden:
+                continue
 
-            elif widget_class == 'CheckboxInput':
-                widget.attrs.setdefault('class', '')
-                widget.attrs['class'] += ' form-check-input'
+            for widget_type, css_class in self.bootstrap_widget_classes.items():
+                if isinstance(widget, widget_type):
+                    existing_classes = widget.attrs.get('class', '')
+                    widget.attrs['class'] = f'{existing_classes} {css_class}'.strip()
+                    break
 
-            elif widget_class == 'ClearableFileInput':
-                widget.attrs.setdefault('class', '')
-                widget.attrs['class'] += ' form-control'
+            # Add placeholder if missing (optional)
+            if not widget.attrs.get('placeholder'):
+                widget.attrs['placeholder'] = field.label
