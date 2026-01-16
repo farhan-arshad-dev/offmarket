@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Post your ad{% endblock %}
+{% block content %}
+  <<<<<<< HEAD
+  <div class="col-md-4">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <h4>Images</h4>
+      {{ image_formset.management_form }}
+      {% for form in image_formset %}{{ form.as_p }}{% endfor %}
+      <button type="submit">Save</button>
+    </form>
+  </div>
+  =======
+  <div class="col-md-4">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <h4>Your contact (visible to buyers)</h4>
+      {{ profile_form.as_p }}
+      <h4>Images</h4>
+      {{ image_formset.management_form }}
+      {% if image_formset.non_form_errors %}
+        <div class="alert alert-danger">{{ image_formset.non_form_errors }}</div>
+      {% endif %}
+      {{ image_formset.as_p }}
+      <a href="{% url 'ads:ad_list' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button type="submit"  class="btn btn-success">Post</button>
+    </form>
+  </div>
+  >>>>>>> 51fe685 (refactor: simplify the AdCreate and Update logic)
+{% endblock %}

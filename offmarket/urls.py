@@ -20,12 +20,14 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from ads.views import AdListView
+
 
 urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('ads/', include('ads.urls')),
     path('admin/', admin.site.urls),
-    path('', include('dashboard.urls')),
+    path('', AdListView.as_view(), name='home'),
 ]
 
 if settings.DEBUG:

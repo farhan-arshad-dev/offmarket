@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.db import models
+from django.forms import ValidationError
+
 
 class Ad(models.Model):
     user = models.ForeignKey(
@@ -32,3 +34,33 @@ class AdImage(models.Model):
     )
     image = models.ImageField(upload_to='ads/')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        """
+        Define the Model-level Safety Check to restrict the max number of images
+        """
+        max_images = getattr(settings, 'ADS_MAX_IMAGES_PER_AD', 20)
+        max_size_mb = getattr(settings, 'ADS_MAX_IMAGE_SIZE_MB', 5)
+
+        # Max images per Ad
+        if self.ad and self.pk:
+            if self.ad.images.count() >= max_images:
+                raise ValidationError(
+                    f'Maximum {max_images} images are allowed per Ad.'
+                )
+
+        # Image size limit
+        if self.image:
+            size_mb = self.image.size / (1024 * 1024)
+            if size_mb > max_size_mb:
+                raise ValidationError(
+                    f'Image size must be less than {max_size_mb} MB.'
+                )
+
+    def save(self, *args, **kwargs):
+        """
+        Enforce validations everywhere
+        Manually trigger the complete validation process
+        """
+        self.full_clean()
+        super().save(*args, **kwargs)

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "core",
     "dashboard",
     "accounts",
     "ads",
@@ -145,9 +146,14 @@ STATIC_URL = "static/"
 # Centralize authentication-related navigation
 # Tells Django where to send the user after successful login, if no next
 # parameter exists.
-LOGIN_REDIRECT_URL = 'dashboard:dashboard'
+LOGIN_REDIRECT_URL = 'home'
 # Tells Django where to send unauthenticated users when they try to access a
 # protected view.
 LOGIN_URL = 'accounts:login'
 # Tells Django where to redirect after logout.
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# ads / image upload limits
+ADS_MAX_IMAGES_PER_AD = 20
+# max image size in MB
+ADS_MAX_IMAGE_SIZE_MB = 5

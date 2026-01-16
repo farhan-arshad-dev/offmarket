@@ -3,12 +3,13 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 from accounts.models import Profile
+from core.forms.mixins import BootstrapWidgetMixin
 
 
 User = get_user_model()
 
 
-class RegistrationForm(UserCreationForm):
+class RegistrationForm(BootstrapWidgetMixin, UserCreationForm):
     email = forms.EmailField(required=True)
 
     class Meta:
@@ -22,7 +23,7 @@ class RegistrationForm(UserCreationForm):
             field.widget.attrs.update({'class': 'form-control'})
 
 
-class LoginForm(AuthenticationForm):
+class LoginForm(BootstrapWidgetMixin, AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
