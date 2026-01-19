@@ -5,6 +5,7 @@ from django.views.generic import CreateView
 
 from accounts.forms import LoginForm, RegistrationForm
 
+
 class RegistrationView(CreateView):
     template_name = 'accounts/register.html'
     form_class = RegistrationForm
