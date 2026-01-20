@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "core",
-    "dashboard",
     "accounts",
     "ads",
 ]

@@ -27,7 +27,9 @@ class BootstrapWidgetMixin:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.apply_bootstrap()
 
+    def apply_bootstrap(self):
         # SAFETY GUARD
         if not hasattr(self, 'fields') or self.fields is None:
             return

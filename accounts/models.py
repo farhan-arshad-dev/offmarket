@@ -33,7 +33,6 @@ class Profile(BaseModel):
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=1, choices=Gender.choices, null=True, blank=True)
     bio = models.TextField(blank=True, max_length=200)
-
     phone_number = models.CharField(validators=[phone_regex], max_length=16, blank=True, null=True)
 
     def __str__(self):

@@ -1,0 +1,7 @@
+{% for field in property_form %}
+  <div class="mb-3">
+    <label>{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+  </div>
+{% endfor %}
