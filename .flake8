@@ -1,0 +1,31 @@
+[flake8]
+max-line-length = 120
+ignore = E302
+
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    static,
+    media,
+    **/migrations/**
+
+# ---------------- GLOBAL RULE ----------------
+# Enforce single quotes by default
+inline-quotes = '
+multiline-quotes = '
+docstring-quotes = "
+
+# ---------------- DJANGO AUTO-GENERATED FILES ----------------
+per-file-ignores =
+    manage.py: Q000,Q001,Q002
+    */settings.py: E501,Q000,Q001,Q002
+    */asgi.py: Q000,Q001,Q002
+    */wsgi.py: Q000,Q001,Q002
+    */apps.py: Q000,Q001,Q002
+    */migrations/*.py: ALL
+
+# ---------------- ISORT ----------------
+isort_config = pyproject.toml
+
+extend-ignore = E203, W503

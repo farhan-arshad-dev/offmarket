@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>
+            {% block title %}OffMarket{% endblock %}
+        </title>
+        
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+              rel="stylesheet">
+        {% block extra_head %}{% endblock %}
+    </head>
+    <body class="bg-light d-flex flex-column min-vh-100">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+        
+                <!-- Site Name -->
+                <a class="navbar-brand" href="{% url 'dashboard:dashboard' %}">OffMarket</a>
+                <!-- Auth Buttons -->
+                {% block navbar_auth %}
+                    <div class="d-flex gap-2 align-items-center">
+                        {% if user.is_authenticated %}
+                            <span class="navbar-text text-light me-3">Hi, {{ user.first_name|default:user.email }}</span>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                            </form>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}"
+                               class="btn btn-outline-light btn-sm">Login</a>
+                            <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm">Register</a>
+                        {% endif %}
+                    </div>
+                {% endblock %}
+            </div>
+        </nav>
+        <!-- Page Heading -->
+        {% block page_heading %}
+            <header class="bg-white border-bottom py-3">
+                <div class="container">
+                    <h1 class="h3 mb-0">
+                        {% block heading_text %}{% endblock %}
+                    </h1>
+                </div>
+            </header>
+        {% endblock %}
+        
+        <!-- Main Content -->
+        <main class="container flex-grow-1 my-4">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Footer -->
+        <footer class="bg-dark text-light text-center py-3 mt-auto">
+            &copy; {{ now|date:"Y" }} OffMarket. All rights reserved.
+        </footer>
+        
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        {% block extra_js %}{% endblock %}
+    </body>
+</html>
