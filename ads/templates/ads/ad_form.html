@@ -1,10 +1,16 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Post your ad{% endblock %}
+{% block extra_head %}
+    <script src="{% static 'ads/js/ad_form.js' %}"></script>
+{% endblock %}
 {% block content %}
     <div class="col-md-4">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+            <div id="category_section"></div>
             {{ form.as_p }}
+            <div id="location_section"></div>
             <h4>Your contact (visible to buyers)</h4>
             {{ profile_form.as_p }}
             <h4>Images</h4>

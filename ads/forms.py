@@ -3,17 +3,40 @@ from django.conf import settings
 from django.forms import BaseInlineFormSet, ValidationError, inlineformset_factory
 
 from accounts.models import Profile
-from ads.models import Ad, AdImage
+from ads.models import Ad, AdImage, Category, Neighbourhood
 from core.forms.mixins import BootstrapWidgetMixin
 from core.validators import validate_phone
 
 
 class AdForm(BootstrapWidgetMixin, forms.ModelForm):
 
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        widget=forms.HiddenInput(),
+        required=True
+    )
+
+    neighbourhood = forms.ModelChoiceField(
+        queryset=Neighbourhood.objects.all(),
+        widget=forms.HiddenInput(),
+        required=True
+    )
+
     class Meta:
         model = Ad
-        fields = ['category', 'brand', 'title', 'description', 'location',
-                  'city', 'neighbourhood', 'price', 'show_phone_number']
+        fields = ['category', 'title', 'description', 'brand', 'neighbourhood', 'price', 'show_phone_number']
+
+    def clean_category(self):
+        category = self.cleaned_data.get('category')
+
+        if not category:
+            raise forms.ValidationError('Please select a category.')
+
+        if category.children.exists():
+            raise forms.ValidationError('Please select a leaf category.')
+
+        return category
+
 
 class AdImageForm(BootstrapWidgetMixin, forms.ModelForm):
     class Meta:
