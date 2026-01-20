@@ -1,5 +1,5 @@
 from django.contrib.auth import login
-from django.contrib.auth.views import LoginView, LogoutView as AuthLogoutView
+from django.contrib.auth.views import LoginView as AuthLoginView
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 
@@ -19,10 +19,6 @@ class RegistrationView(CreateView):
         return is_valid
 
 
-class LoginView(LoginView):
+class LoginView(AuthLoginView):
     template_name = 'accounts/login.html'
     authentication_form = LoginForm
-
-
-class LogoutView(AuthLogoutView):
-    pass
