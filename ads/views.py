@@ -1,18 +1,54 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, ProfileInlineForm
-from ads.models import Ad
+from ads.models import Ad, City
 
 
 class AdListView(ListView):
     model = Ad
     template_name = 'ads/ad_list.html'
     context_object_name = 'ads'
-    paginate_by = 10
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Ad.objects.all()
+        keyword = self.request.GET.get('q', '').strip()
+        city_select = self.request.GET.get('city', '')
+
+        # Keyword search
+        if keyword:
+            queryset = queryset.filter(
+                Q(title__icontains=keyword)
+                | Q(description__icontains=keyword)
+                | Q(category__name__icontains=keyword)
+                | Q(brand__icontains=keyword)
+            )
+
+        # City filter ignore in case of All cities
+        if city_select and city_select.startswith('CITY_'):
+            city_id = int(city_select.replace('CITY_', ''))
+            queryset = queryset.filter(
+                neighbourhood__city_id=city_id
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cities = City.objects.prefetch_related().all()
+
+        city_choices = []
+        for city in cities.all():
+            city_choices.append((f'CITY_{city.id}', city.name))
+
+        context['city_choices'] = city_choices
+
+        return context
 
 
 class AdDetailView(DetailView):
