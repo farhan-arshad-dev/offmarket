@@ -8,6 +8,30 @@
       <h3 class="mb-0">Ads</h3>
       <a href="{% url 'ads:ad_create' %}" class="btn btn-primary btn-sm">+ Post Ad</a>
     </div>
+    <form method="get"
+          action="{% url 'home' %}"
+          class="row g-2 align-items-center mb-3">
+      <div class="col-md-4">
+        <select name="city" class="form-select">
+          <option value="">All Cities</option>
+          {% for value, name in city_choices %}
+            <option value="{{ value }}"
+                    {% if request.GET.city == value %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5">
+        <input type="text"
+               name="q"
+               class="form-control"
+               placeholder="Search keyword"
+               value="{{ request.GET.q }}">
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Search</button>
+      </div>
+    </form>
+    <hr>
     {% if ads %}
       <div class="row g-4">
         {% for ad in ads %}
