@@ -38,12 +38,11 @@ class ProfileForm(forms.ModelForm):
         required=False
     )
 
+    class Meta:
+        model = Profile
+        fields = ['profile_pic', 'full_name', 'date_of_birth', 'gender', 'bio', 'phone_number']
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
-
-    class Meta:
-        model = Profile
-        fields = ['profile_pic', 'full_name', 'date_of_birth',
-                  'gender', 'bio', 'phone_number']

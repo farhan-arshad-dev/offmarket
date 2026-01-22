@@ -1,13 +1,11 @@
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
 
 from accounts.managers import UserManager
+from accounts.utils import user_profile_pic_path
 
-
-def user_profile_pic_path(instance, filename):
-    return f'profiles/user_{instance.user.id}/{filename}'
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = None
@@ -38,7 +36,7 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        get_user_model(),
         on_delete=models.CASCADE,
         related_name='profile'
     )
