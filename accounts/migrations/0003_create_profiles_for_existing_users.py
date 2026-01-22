@@ -23,7 +23,7 @@ def reverse_create_profiles(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0002_profile'),
+        ('accounts', '0002_alter_user_options_user_date_joined_user_first_name_and_more'),
     ]
 
     operations = [

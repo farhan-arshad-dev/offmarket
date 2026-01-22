@@ -22,7 +22,8 @@ class UserAdmin(AuthUserAdmin):
     search_fields = ('email',)
 
     fieldsets = (
-        (None, {'fields': ('email', 'password')}), ('Important Dates', {'fields': ('last_login',)}),
+        (None, {'fields': ('email', 'password')}), ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Important Dates', {'fields': ('last_login',)}),
         ('Permissions', {'fields': ('is_superuser', 'is_staff', 'is_active', 'groups', 'user_permissions')}),
     )
 

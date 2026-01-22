@@ -28,6 +28,20 @@ class LoginForm(AuthenticationForm):
             field.widget.attrs.update({'class': 'form-control'})
 
 
+class UserUpdateForm(forms.ModelForm):
+
+    email = forms.EmailField(disabled=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+
+
 class ProfileForm(forms.ModelForm):
 
     date_of_birth = forms.DateField(
@@ -40,7 +54,7 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['profile_pic', 'full_name', 'date_of_birth', 'gender', 'bio', 'phone_number']
+        fields = ['profile_pic', 'date_of_birth', 'gender', 'bio', 'phone_number']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -7,17 +7,19 @@ from accounts.managers import UserManager
 from accounts.utils import user_profile_pic_path
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractUser, PermissionsMixin):
     username = None
     email = models.EmailField(unique=True)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    @property
+    def full_name(self):
+        return super().get_full_name()
 
     def __str__(self):
         return self.email
@@ -46,7 +48,6 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
-    full_name = models.CharField(max_length=150, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(
         max_length=1,
@@ -64,4 +65,4 @@ class Profile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.full_name
+        return self.user.full_name

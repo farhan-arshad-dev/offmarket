@@ -25,11 +25,11 @@
                         {% if user.is_authenticated %}
                             {% if show_profile_link|default_if_none:True %}
                                 <a href="{% url 'accounts:profile' %}" class="navbar-text text-light me-3">
-                                    Hi, {{ user.profile.full_name|default:user.email }}
+                                    Hi, {{ user.full_name|default:user.email }}
                                 </a>
                             {% else %}
                                 <span class="navbar-text text-light me-3">
-                                    Hi, {{ user.profile.full_name|default:user.email }}
+                                    Hi, {{ user.full_name|default:user.email }}
                                 </span>
                             {% endif %}
                                 <form method="post" action="{% url 'accounts:logout' %}" class="m-0">
