@@ -1,10 +1,12 @@
 from django.http import JsonResponse
+from django.template.loader import render_to_string
 from django.views import View
 
-from ads.models import Category, City, Location, Neighbourhood
+from ads.forms import DynamicPropertyForm
+from ads.models import Ad, Category, City, Location, Neighbourhood
 
 
-class CategoryChildrenView(View):
+class LoadCategoryChildrenView(View):
     def get(self, request, parent_id):
         children = None
         if (parent_id == 0):
@@ -31,3 +33,26 @@ class NeighbourhoodView(View):
     def get(self, request, city_id):
         neighbourhoods = Neighbourhood.objects.filter(city_id=city_id).values('id', 'name')
         return JsonResponse({'items': list(neighbourhoods)})
+
+
+class LoadCategoryPropertiesView(View):
+    def get(self, request, *args, **kwargs):
+        ad_id = request.GET.get('ad_id')
+        print(ad_id)
+        category_id = request.GET.get('category_id')
+
+        adObject = Ad.objects.filter(id=ad_id).first() if ad_id else None
+        print(adObject)
+        category = Category.objects.filter(id=category_id).first()
+        print(category)
+        if not category:
+            return JsonResponse({'html': ''})
+
+        form = DynamicPropertyForm(category=category, ad=adObject)
+
+        html = render_to_string(
+            'ads/partials/property_form.html',
+            {'property_form': form},
+            request=request
+        )
+        return JsonResponse({'html': html})
