@@ -17,6 +17,7 @@ class RegistrationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
 
@@ -24,12 +25,12 @@ class RegistrationForm(UserCreationForm):
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
 
 
 class UserUpdateForm(forms.ModelForm):
-
     email = forms.EmailField(disabled=True, required=True)
 
     class Meta:
@@ -38,12 +39,12 @@ class UserUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
 
 
 class ProfileForm(forms.ModelForm):
-
     date_of_birth = forms.DateField(
         widget=forms.DateInput(attrs={
             'type': 'date',
@@ -58,5 +59,6 @@ class ProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})

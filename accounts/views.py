@@ -38,6 +38,7 @@ class ProfileView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['show_profile_link'] = False
+
         if self.request.POST:
             context['user_form'] = UserUpdateForm(self.request.POST, instance=self.request.user)
         else:
@@ -45,10 +46,9 @@ class ProfileView(LoginRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
-        # Save Profile form first
         response = super().form_valid(form)
-        # Save User form
         user_form = UserUpdateForm(self.request.POST, instance=self.request.user)
+
         if user_form.is_valid():
             user_form.save()
         return response

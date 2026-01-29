@@ -1,21 +1,20 @@
 {% extends "base.html" %}
-
-{% block title %}Complete Your Profile | {{ block.super }}{% endblock %}
-
-{% block heading_text %}Complete Your Profile{% endblock %}
-
+{% block title %}
+  Complete Your Profile | {{ block.super }}
+{% endblock title %}
+{% block heading_text %}
+  Complete Your Profile
+{% endblock heading_text %}
 {% block content %}
-    <div class="d-flex justify-content-start">
-        <div class="col-md-4">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ user_form.as_p }}
-                {{ form.as_p }}
-                <button type="submit"
-                        class="btn btn-success w-100 d-flex justify-content-center align-items-center">
-                    Save & Continue
-                </button>
-            </form>
-        </div>
+  <div class="d-flex justify-content-start">
+    <div class="col-md-4">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ user_form.as_p }}
+        {{ form.as_p }}
+        <button type="submit"
+                class="btn btn-success w-100 d-flex justify-content-center align-items-center">Save & Continue</button>
+      </form>
     </div>
-{% endblock %}
+  </div>
+{% endblock content %}
