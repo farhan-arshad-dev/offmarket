@@ -1,23 +1,24 @@
 {% extends "base.html" %}
-
-{% block title %}Login | {{ block.super }}{% endblock %}
-
-{% block heading_text %}Login{% endblock %}
-
-{% block navbar_auth %}{% endblock %}
-
+{% block title %}
+  Login | {{ block.super }}
+{% endblock title %}
+{% block heading_text %}
+  Login
+{% endblock heading_text %}
+{% block navbar_auth %}
+{% endblock navbar_auth %}
 {% block content %}
-    <div class="d-flex justify-content-end">
-        <div class="col-md-4">
-            <form method="post" novalidate>
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit"
-                        class="btn btn-success w-100 d-flex justify-content-center align-items-center">Login</button>
-            </form>
-            <p class="text-center mt-3 mb-0">
-                <a href="{% url 'accounts:register' %}">Don't have an account? Register</a>
-            </p>
-        </div>
+  <div class="d-flex justify-content-end">
+    <div class="col-md-4">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit"
+                class="btn btn-success w-100 d-flex justify-content-center align-items-center">Login</button>
+      </form>
+      <p class="text-center mt-3 mb-0">
+        <a href="{% url 'accounts:register' %}">Don't have an account? Register</a>
+      </p>
     </div>
-{% endblock %}
+  </div>
+{% endblock content %}

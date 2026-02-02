@@ -1,0 +1,8 @@
+from django.db import models
+
+
+class Gender(models.TextChoices):
+    MALE = 'M', 'Male'
+    FEMALE = 'F', 'Female'
+    OTHER = 'O', 'Other'
+    PREFER_NOT_TO_SAY = 'N', 'Prefer not to say'
