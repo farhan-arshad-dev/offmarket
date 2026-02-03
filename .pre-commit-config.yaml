@@ -17,6 +17,20 @@ repos:
           - --profile=django
           - --reformat
 
+  - repo: local
+    hooks:
+      - id: django-check
+        name: Django system check
+        entry: python manage.py check
+        language: system
+        pass_filenames: false
+
+      - id: makemigrations-check
+        name: Check missing migrations
+        entry: python manage.py makemigrations --check --dry-run
+        language: system
+        pass_filenames: false
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
