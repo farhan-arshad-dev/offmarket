@@ -22,14 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # project-level static folder
+    BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# full path to .env
 ENV_PATH = os.path.join(BASE_DIR, '.env')
 load_dotenv(ENV_PATH)
 
@@ -152,7 +151,6 @@ LOGIN_URL = 'accounts:login'
 # Tells Django where to redirect after logout.
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
-# ads / image upload limits
 ADS_MAX_IMAGES_PER_AD = 20
-# max image size in MB
 ADS_MAX_IMAGE_SIZE_MB = 5
+ADS_ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']

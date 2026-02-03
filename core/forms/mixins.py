@@ -30,7 +30,6 @@ class BootstrapWidgetMixin:
         self.apply_bootstrap()
 
     def apply_bootstrap(self):
-        # SAFETY GUARD
         if not hasattr(self, 'fields') or self.fields is None:
             return
 
@@ -46,6 +45,5 @@ class BootstrapWidgetMixin:
                     widget.attrs['class'] = f'{existing_classes} {css_class}'.strip()
                     break
 
-            # Add placeholder if missing (optional)
             if not widget.attrs.get('placeholder'):
                 widget.attrs['placeholder'] = field.label

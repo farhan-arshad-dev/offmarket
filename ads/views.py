@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import transaction
+from django.db import IntegrityError, transaction
+from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
@@ -14,11 +15,17 @@ class AdListView(ListView):
     context_object_name = 'ads'
     paginate_by = 10
 
+    def get_queryset(self):
+        return super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related('images')
+
 
 class AdDetailView(DetailView):
     model = Ad
     template_name = 'ads/ad_detail.html'
     context_object_name = 'ad'
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related('images')
 
 
 class AdCreateView(LoginRequiredMixin, CreateView):
@@ -110,9 +117,6 @@ class AdUpdateView(LoginRequiredMixin, UpdateView):
             context['image_formset'] = AdImageUpdateFormSet(instance=ad)
             context['profile_form'] = ProfileInlineForm(instance=self.request.user.profile, user=self.request.user)
 
-        print(self.request.method)
-        print(ad)
-        print(ad.category)
         context['property_form'] = DynamicPropertyForm(self.request.POST or None, category=ad.category, ad=ad)
         context['page_context'] = {
             'category_hierarchy' : ad.category.get_hierarchy(),
@@ -159,13 +163,16 @@ class AdUpdateView(LoginRequiredMixin, UpdateView):
                     )
                 )
 
-            AdPropertyValue.objects.bulk_create(ad_property_values)
+            AdPropertyValue.objects.bulk_create(
+                ad_property_values, update_conflicts=True, unique_fields=['ad', 'prop'], update_fields=['value']
+            )
 
             image_formset.instance = ad
             image_formset.save()
 
             return redirect(self.success_url)
-        except Exception:
+        except (ValidationError, IntegrityError) as exception:
+            form.add_error(None, str(exception))
             return self.form_invalid(form)
 
 

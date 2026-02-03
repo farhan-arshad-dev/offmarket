@@ -9,11 +9,11 @@ from ads.models import (
 class AdImageInline(admin.StackedInline):
     model = AdImage
     can_delete = False
-    verbose_name_plural = 'Profile'
+    verbose_name_plural = 'AdImages'
     fk_name = 'ad'
 
 
-class AdPropertyValueAdmin(admin.StackedInline):
+class AdPropertyValueAdmin(admin.TabularInline):
     model = AdPropertyValue
     can_delete = True
     verbose_name_plural = 'AdPropertyValues'
@@ -26,6 +26,9 @@ class AdModelAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'price')
     ordering = ('title',)
     search_fields = ('title',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('category')
 
 
 class CategoryPropertyInline(admin.TabularInline):
@@ -55,6 +58,9 @@ class CategoryPropertyValueInline(admin.TabularInline):
 class CategoryPropertyAdmin(admin.ModelAdmin):
     list_display = ('property', 'category', 'required')
     inlines = [CategoryPropertyValueInline]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('category')
 
 
 admin.site.register(Location)

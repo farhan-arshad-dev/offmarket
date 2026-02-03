@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from django.forms import BaseInlineFormSet, ValidationError, inlineformset_factory
+from django.forms import ValidationError, inlineformset_factory
 
 from accounts.models import Profile
 from ads.models import Ad, AdImage, AdPropertyValue, Category, CategoryProperty, Neighbourhood, Property
@@ -35,57 +35,12 @@ class AdImageForm(BootstrapWidgetMixin, forms.ModelForm):
         model = AdImage
         fields = ['image']
 
-    def clean_image(self):
-        """
-        Define Formset Level (Sync with settings) to restrict the max size of images
-        """
-        image = self.cleaned_data.get('image')
-        max_size_mb = getattr(settings, 'ADS_MAX_IMAGE_SIZE_MB', 5)
-
-        if image:
-            size_mb = image.size / (1024 * 1024)
-            if size_mb > max_size_mb:
-                raise forms.ValidationError(
-                    f'Image size must be under {max_size_mb} MB.'
-                )
-
-        return image
-
-
-class AdImageBaseFormSet(BootstrapWidgetMixin, BaseInlineFormSet):
-    """
-    Class used to control the validation and behavior of inline formsets.
-    Rules + behavior engine for inline formsets
-    """
-    def clean(self):
-        """
-        Define Formset Level (Sync with settings) to restrict the max number of images
-        """
-        super().clean()
-        max_images = getattr(settings, 'ADS_MAX_IMAGES_PER_AD', 20)
-        total_images = 0
-
-        for form in self.forms:
-            if self.can_delete and self._should_delete_form(form):
-                continue
-            if form.cleaned_data.get('image'):
-                total_images += 1
-
-        if total_images > max_images:
-            raise forms.ValidationError(
-                f'You can upload a maximum of {max_images} images.'
-            )
-
-        if total_images < 1:
-            raise forms.ValidationError('You need upload a atleast 1 image.')
-
 
 # Creates a ready-to-use inline formset class (parent–child relationship)
 AdImageCreateFormSet = inlineformset_factory(
     parent_model=Ad,
     model=AdImage,
     form=AdImageForm,
-    formset=AdImageBaseFormSet,
     fields=('image',),
     extra=2,
     can_delete=False,
@@ -98,7 +53,6 @@ AdImageCreateFormSet = inlineformset_factory(
 AdImageUpdateFormSet = inlineformset_factory(
     parent_model=Ad,
     model=AdImage,
-    formset=AdImageBaseFormSet,
     fields=('image',),
     extra=2,
     can_delete=True,
@@ -109,10 +63,10 @@ AdImageUpdateFormSet = inlineformset_factory(
 )
 
 
-class ProfileInlineForm(forms.ModelForm):
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), required=True)
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), required=True)
-    phone_number = forms.CharField(validators=[validate_phone], widget=forms.TextInput(attrs={'class': 'form-control'}))
+class ProfileInlineForm(BootstrapWidgetMixin, forms.ModelForm):
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    phone_number = forms.CharField(validators=[validate_phone])
 
     class Meta:
         model = Profile

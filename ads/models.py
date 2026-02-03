@@ -5,6 +5,7 @@ from django.forms import ValidationError
 
 from ads.choices import DataType
 from core.models.base import BaseModel
+from core.utils import ad_image_upload_to, category_image_upload_to, get_file_extension
 
 
 class Category(BaseModel):
@@ -12,36 +13,37 @@ class Category(BaseModel):
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children', on_delete=models.CASCADE, db_index=True
     )
-    image = models.ImageField(upload_to='categories/', null=True, blank=True)
+    image = models.ImageField(upload_to=category_image_upload_to, null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name_plural = 'Categories'
 
+    @property
     def has_parent(self):
         return self.parent is not None
 
+    @property
     def get_parent(self):
         return self.parent
 
     def get_hierarchy(self):
         current = self
         hierarchy = []
+
         while current:
             hierarchy.append({'id': current.id, 'name': current.name})
             current = current.get_parent()
 
-        # Reverse to get root -> leaf order
         hierarchy.reverse()
         return hierarchy
 
     def clean(self):
-        # Prevent self-parenting
         if self.parent and self.pk and self.parent_id == self.pk:
             raise ValidationError('Category cannot be parent of itself.')
 
-        # Prevent circular hierarchy
         parent = self.parent
+
         while parent:
             if parent == self:
                 raise ValidationError('Circular category hierarchy is not allowed.')
@@ -113,7 +115,7 @@ class Ad(BaseModel):
 
 class AdImage(BaseModel):
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='ads/')
+    image = models.ImageField(upload_to=ad_image_upload_to)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
@@ -123,20 +125,30 @@ class AdImage(BaseModel):
         max_images = getattr(settings, 'ADS_MAX_IMAGES_PER_AD', 20)
         max_size_mb = getattr(settings, 'ADS_MAX_IMAGE_SIZE_MB', 5)
 
-        # Max images per Ad
         if self.ad and self.pk:
             if self.ad.images.count() >= max_images:
                 raise ValidationError(
                     f'Maximum {max_images} images are allowed per Ad.'
                 )
 
-        # Image size limit
         if self.image:
             size_mb = self.image.size / (1024 * 1024)
             if size_mb > max_size_mb:
                 raise ValidationError(
                     f'Image size must be less than {max_size_mb} MB.'
                 )
+
+        ext = get_file_extension(self.image)
+        allowed_exts = getattr(
+            settings,
+            'ADS_ALLOWED_IMAGE_EXTENSIONS',
+            ['jpg', 'jpeg', 'png', 'webp']
+        )
+
+        if not ext or ext not in allowed_exts:
+            raise ValidationError(
+                f'Unsupported file type. Allowed types: {", ".join(allowed_exts)}.'
+            )
 
     def save(self, *args, **kwargs):
         """
@@ -174,17 +186,10 @@ class CategoryProperty(BaseModel):
 class CategoryPropertyValue(BaseModel):
     category_property = models.ForeignKey(CategoryProperty, related_name='values', on_delete=models.CASCADE)
     value = models.CharField(max_length=128)
-
     depends_on = models.ForeignKey(
         CategoryProperty, null=True, blank=True, related_name='dependent_values', on_delete=models.CASCADE
     )
-
-    depends_on_value = models.ForeignKey(
-        'self',
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE
-    )
+    depends_on_value = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('category_property', 'value')
