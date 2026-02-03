@@ -11,12 +11,12 @@ from django.db import migrations, models
 def create_profiles_for_existing_users(apps, schema_editor):
     User = apps.get_model(settings.AUTH_USER_MODEL)
     Profile = apps.get_model('accounts', 'Profile')
-    
+
     users_without_profile = User.objects.filter(profile__isnull=True)
     profiles_to_create = []
     for user in users_without_profile:
             profiles_to_create.append(Profile(user=user))
-    
+
     Profile.objects.bulk_create(profiles_to_create)
     print(f'Created {len(users_without_profile)} profiles')
 
