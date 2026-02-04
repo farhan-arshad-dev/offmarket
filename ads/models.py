@@ -23,17 +23,13 @@ class Category(BaseModel):
     def has_parent(self):
         return self.parent is not None
 
-    @property
-    def get_parent(self):
-        return self.parent
-
     def get_hierarchy(self):
         current = self
         hierarchy = []
 
         while current:
             hierarchy.append({'id': current.id, 'name': current.name})
-            current = current.get_parent()
+            current = current.parent
 
         hierarchy.reverse()
         return hierarchy
