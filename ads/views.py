@@ -5,9 +5,12 @@ from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
 from ads.models import Ad, AdPropertyValue, Category, City, Property
+from ads.serializers import AdSerializer
 
 
 class AdListView(ListView):
@@ -162,3 +165,14 @@ class AdDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
+
+class AdViewSet(viewsets.ModelViewSet):
+    queryset = (
+        Ad.objects.select_related('user', 'user__profile', 'category', 'neighbourhood', 'neighbourhood__city',
+                                  'neighbourhood__city__location').prefetch_related('images', 'property_values__prop')
+    )
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        return AdSerializer
