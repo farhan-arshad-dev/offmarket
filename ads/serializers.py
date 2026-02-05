@@ -3,7 +3,10 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 
-from ads.models import Ad, AdImage, AdPropertyValue, CategoryProperty, Property
+from ads.models import (
+    Ad, AdImage, AdPropertyValue, Category, CategoryProperty, CategoryPropertyValue, City, Location, Neighbourhood,
+    Property,
+)
 
 
 User = get_user_model()
@@ -108,7 +111,11 @@ class AdCreateSerializer(serializers.ModelSerializer):
             if len(valid_ids) != len(delete_ids):
                 raise serializers.ValidationError({'images': 'One or more images do not belong to this ad.'})
 
-        existing_count = ad.images.count()
+        existing_count = 0
+
+        if ad and ad.images:
+            existing_count = ad.images.count()
+
         final_count = existing_count - len(delete_ids) + len(new_images)
 
         if final_count < 1:
@@ -118,7 +125,7 @@ class AdCreateSerializer(serializers.ModelSerializer):
         if final_count > max_images:
             raise serializers.ValidationError({'images': f'You can upload a maximum of {max_images} images.'})
 
-        category = self.instance.category if self.instance.category else attrs.get('category')
+        category = self.instance.category if self.instance and self.instance.category else attrs.get('category')
 
         if not category:
             raise serializers.ValidationError({'category': 'Category is required.'})
@@ -127,10 +134,11 @@ class AdCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'category': 'You can only post under a leaf category.'})
 
         if category:
-            required_props = CategoryProperty.objects.filter(category=category, required=True)
+            required_props = CategoryProperty.objects.filter(category=category, is_required=True)
             provided_prop_ids = {pv['prop_id'] for pv in attrs.get('properties', [])}
 
-            missing_props = [prop.name for prop in required_props if prop.id not in provided_prop_ids]
+            missing_props = [prop.property.name for prop in required_props if prop.id not in provided_prop_ids]
+
             if missing_props:
                 raise serializers.ValidationError({
                     'properties': f'Missing required property values: {", ".join(missing_props)}'
@@ -192,3 +200,56 @@ class AdCreateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class CategoryPropertyValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoryPropertyValue
+        fields = ('id', 'value')
+
+
+class CategoryPropertySerializer(serializers.ModelSerializer):
+    values = CategoryPropertyValueSerializer(
+        source='category_property_values',  # matches your related_name
+        many=True
+    )
+
+    class Meta:
+        model = CategoryProperty
+        fields = ('id', 'property', 'is_required', 'values')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    properties = CategoryPropertySerializer(many=True, read_only=True, source='category_properties')
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ('id', 'name', 'properties', 'children')
+
+    def get_children(self, obj):
+        children_qs = obj.children.all()
+        if children_qs.exists():
+            serializer = CategorySerializer(children_qs, many=True)
+            return serializer.data
+        return None
+
+class NeighbourhoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Neighbourhood
+        fields = ('id', 'name')
+
+
+class CityWithNeighbourhoodsSerializer(serializers.ModelSerializer):
+    neighbourhoods = NeighbourhoodSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = City
+        fields = ('id', 'name', 'neighbourhoods')
+
+class LocationWithCitiesSerializer(serializers.ModelSerializer):
+    cities = CityWithNeighbourhoodsSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Location
+        fields = ('id', 'name', 'cities')
