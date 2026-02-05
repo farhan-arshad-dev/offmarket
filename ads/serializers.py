@@ -1,7 +1,9 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import serializers
 
-from ads.models import Ad, AdImage, AdPropertyValue
+from ads.models import Ad, AdImage, AdPropertyValue, CategoryProperty, Property
 
 
 User = get_user_model()
@@ -57,6 +59,7 @@ class AdSerializer(serializers.ModelSerializer):
         model = Ad
         fields = ('id', 'title', 'description', 'price', 'category', 'location', 'images', 'property_values', 'user',
                   'created_at',)
+        read_only_fields = ('id',)
 
     def get_user(self, obj):
         serializer = UserPublicSerializer(
@@ -80,3 +83,112 @@ class AdSerializer(serializers.ModelSerializer):
 
     def get_location(self, obj):
         return obj.neighbourhood.get_location_hierarchy()
+
+
+class AdCreateSerializer(serializers.ModelSerializer):
+    images = AdImageSerializer(many=True, read_only=True)
+    upload_images = serializers.ListField(child=serializers.ImageField(allow_empty_file=False, use_url=False),
+                                          write_only=True, required=False)
+    delete_images = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    properties = AdPropertyValueSerializer(many=True, write_only=True, required=False)
+
+    class Meta:
+        model = Ad
+        fields = ('id', 'category', 'title', 'description', 'neighbourhood', 'price', 'show_phone_number', 'images',
+                  'properties', 'upload_images', 'delete_images',)
+        read_only_fields = ('id',)
+
+    def validate(self, attrs):
+        ad = self.instance
+        delete_ids = attrs.get('delete_images', [])
+        new_images = attrs.get('upload_images', [])
+
+        if delete_ids:
+            valid_ids = set(ad.images.filter(id__in=delete_ids).values_list('id', flat=True))
+            if len(valid_ids) != len(delete_ids):
+                raise serializers.ValidationError({'images': 'One or more images do not belong to this ad.'})
+
+        existing_count = ad.images.count()
+        final_count = existing_count - len(delete_ids) + len(new_images)
+
+        if final_count < 1:
+            raise serializers.ValidationError({'images': 'At least one image is required.'})
+
+        max_images = getattr(settings, 'ADS_MAX_IMAGES_PER_AD', 20)
+        if final_count > max_images:
+            raise serializers.ValidationError({'images': f'You can upload a maximum of {max_images} images.'})
+
+        category = self.instance.category if self.instance.category else attrs.get('category')
+
+        if not category:
+            raise serializers.ValidationError({'category': 'Category is required.'})
+
+        if category.children.exists():
+            raise serializers.ValidationError({'category': 'You can only post under a leaf category.'})
+
+        if category:
+            required_props = CategoryProperty.objects.filter(category=category, required=True)
+            provided_prop_ids = {pv['prop_id'] for pv in attrs.get('properties', [])}
+
+            missing_props = [prop.name for prop in required_props if prop.id not in provided_prop_ids]
+            if missing_props:
+                raise serializers.ValidationError({
+                    'properties': f'Missing required property values: {", ".join(missing_props)}'
+                })
+
+        return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        images_data = validated_data.pop('upload_images', [])
+        property_values_data = validated_data.pop('properties', [])
+
+        ad = Ad.objects.create(**validated_data)
+
+        AdImage.objects.bulk_create([AdImage(ad=ad, image=image_file) for image_file in images_data])
+
+        prop_ids = [pv['prop_id'] for pv in property_values_data]
+        properties = Property.objects.in_bulk(prop_ids)
+        ad_property_values = [
+            AdPropertyValue(ad=ad, prop=properties[pv['prop_id']], value=pv['value'])
+            for pv in property_values_data
+            if pv['prop_id'] in properties
+        ]
+        AdPropertyValue.objects.bulk_create(
+            ad_property_values, update_conflicts=True, unique_fields=['ad', 'prop'], update_fields=['value']
+        )
+
+        return ad
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        upload_images = validated_data.pop('upload_images', [])
+        delete_images = validated_data.pop('delete_images', [])
+        property_values_data = validated_data.pop('properties', [])
+
+        if delete_images:
+            instance.images.filter(id__in=delete_images).delete()
+
+        if upload_images:
+            AdImage.objects.bulk_create([AdImage(ad=instance, image=image_file)for image_file in upload_images])
+
+        if property_values_data:
+            prop_ids = [pv['prop_id'] for pv in property_values_data]
+            properties = Property.objects.in_bulk(prop_ids)
+
+            AdPropertyValue.objects.bulk_create(
+                [
+                    AdPropertyValue(ad=instance, prop=properties[pv['prop_id']], value=pv['value'])
+                    for pv in property_values_data
+                    if pv['prop_id'] in properties
+                ],
+                update_conflicts=True,
+                unique_fields=['ad', 'prop'],
+                update_fields=['value']
+            )
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
