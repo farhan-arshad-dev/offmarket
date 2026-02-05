@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import filters
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
 from ads.models import Ad, AdPropertyValue, Category, City, Property
@@ -173,6 +174,8 @@ class AdViewSet(viewsets.ModelViewSet):
                                   'neighbourhood__city__location').prefetch_related('images', 'property_values__prop')
     )
     permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'description', 'category__name', 'neighbourhood__city__location__name']
 
     def get_serializer_class(self):
         return AdSerializer
