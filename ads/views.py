@@ -4,13 +4,13 @@ from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
-from rest_framework import viewsets
+from rest_framework import filters, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import filters
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
 from ads.models import Ad, AdPropertyValue, Category, Property
-from ads.serializers import AdSerializer
+from ads.serializers import AdCreateSerializer, AdSerializer
+from core.permissions import IsOwnerOrReadOnly
 
 
 class AdListView(ListView):
@@ -144,9 +144,22 @@ class AdViewSet(viewsets.ModelViewSet):
         Ad.objects.select_related('user', 'user__profile', 'category', 'neighbourhood', 'neighbourhood__city',
                                   'neighbourhood__city__location').prefetch_related('images', 'property_values__prop')
     )
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'description', 'category__name', 'neighbourhood__city__location__name']
 
     def get_serializer_class(self):
+
+        if self.action in ('create', 'update', 'partial_update'):
+            return AdCreateSerializer
+
         return AdSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action in ['update', 'partial_update', 'destroy',]:
+            return queryset.filter(user=self.request.user)
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
