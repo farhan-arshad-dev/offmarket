@@ -1,15 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
+from django.db.models import Prefetch
 from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 from rest_framework import filters, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
-from ads.models import Ad, AdPropertyValue, Category, Property
-from ads.serializers import AdCreateSerializer, AdSerializer
+from ads.models import Ad, AdPropertyValue, Category, City, Location, Property
+from ads.serializers import AdCreateSerializer, AdSerializer, CategorySerializer, LocationWithCitiesSerializer
 from core.permissions import IsOwnerOrReadOnly
 
 
@@ -163,3 +166,18 @@ class AdViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+class AdCreateConfigAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        categories = (Category.objects.filter(parent__isnull=True)
+                      .prefetch_related('category_properties', 'category_properties__category_property_value'))
+        locations = (Location.objects.prefetch_related(
+            Prefetch('cities', queryset=City.objects.prefetch_related('neighbourhoods')))
+        )
+
+        return Response({
+            'categories': CategorySerializer(categories, many=True).data,
+            'locations': LocationWithCitiesSerializer(locations, many=True).data,
+        })
