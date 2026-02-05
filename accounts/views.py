@@ -1,11 +1,17 @@
-from django.contrib.auth import login
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as AuthLoginView
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
+from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.forms import LoginForm, ProfileForm, RegistrationForm, UserUpdateForm
 from accounts.models import Profile
+from accounts.serializers import UserProfileSerializer
+
+
+User = get_user_model()
 
 
 class RegistrationView(CreateView):
@@ -52,3 +58,12 @@ class ProfileView(LoginRequiredMixin, UpdateView):
         if user_form.is_valid():
             user_form.save()
         return response
+
+
+class UserProfileAPIView(RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'patch']
+
+    def get_object(self):
+        return User.objects.select_related('profile').get(id=self.request.user.id)
