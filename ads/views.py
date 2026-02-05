@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
-from ads.models import Ad, AdPropertyValue, Property
+from ads.models import Ad, AdPropertyValue, Category, Property
 
 
 class AdListView(ListView):
@@ -49,12 +49,20 @@ class AdFormMixin(LoginRequiredMixin):
             context['image_formset'] = self.image_formset_class(instance=ad)
             context['profile_form'] = ProfileInlineForm(instance=self.request.user.profile, user=self.request.user)
 
-        category = ad.category if ad else None
+        category_id = None
+
+        if ad and ad.category_id:
+            category_id = ad.category_id
+        else:
+            category_id = self.request.POST.get('category')
+
+        category = (Category.objects.filter(id=category_id).first() if category_id else None)
+
         context['property_form'] = DynamicPropertyForm(post_data, category=category, ad=ad)
 
         if ad:
             context['page_context'] = {
-                'category_hierarchy': ad.category.get_hierarchy(),
+                'category_hierarchy': ad.category.get_hierarchy,
                 'location_hierarchy': ad.neighbourhood.get_location_hierarchy(),
             }
 
@@ -68,11 +76,9 @@ class AdFormMixin(LoginRequiredMixin):
         property_form = context['property_form']
 
         forms_are_valid = all([
-            form.is_valid(),
-            profile_form.is_valid(),
-            image_formset.is_valid(),
-            property_form.is_valid(),
+            form.is_valid(), profile_form.is_valid(), image_formset.is_valid(), property_form.is_valid(),
         ])
+
         if not forms_are_valid:
             return self.form_invalid(form)
 
@@ -91,20 +97,13 @@ class AdFormMixin(LoginRequiredMixin):
             properties = Property.objects.in_bulk(prop_ids)
 
             ad_property_values = [
-                AdPropertyValue(
-                    ad=ad,
-                    prop=properties[int(field.split('_', 1)[1])],
-                    value=str(value)
-                )
+                AdPropertyValue(ad=ad, prop=properties[int(field.split('_', 1)[1])], value=str(value))
                 for field, value in property_form.cleaned_data.items()
                 if value not in (None, '', []) and int(field.split('_', 1)[1]) in properties
             ]
 
             AdPropertyValue.objects.bulk_create(
-                ad_property_values,
-                update_conflicts=True,
-                unique_fields=['ad', 'prop'],
-                update_fields=['value']
+                ad_property_values, update_conflicts=True, unique_fields=['ad', 'prop'], update_fields=['value']
             )
 
             image_formset.instance = ad

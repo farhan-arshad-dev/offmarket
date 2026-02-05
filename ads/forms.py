@@ -3,7 +3,8 @@ from django.conf import settings
 from django.forms import ValidationError, inlineformset_factory
 
 from accounts.models import Profile
-from ads.models import Ad, AdImage, AdPropertyValue, Category, CategoryProperty, Neighbourhood, Property
+from ads.choices import DataType
+from ads.models import Ad, AdImage, AdPropertyValue, Category, CategoryProperty, Neighbourhood
 from core.forms.mixins import BootstrapWidgetMixin
 from core.validators import validate_phone
 
@@ -120,12 +121,10 @@ class DynamicPropertyForm(BootstrapWidgetMixin, forms.Form):
         existing_values = {}
 
         if ad:
-            existing_values = {
-                apv.prop_id: apv.value
-                for apv in AdPropertyValue.objects.filter(ad=ad)
-            }
+            existing_values = {apv.prop_id: apv.value for apv in AdPropertyValue.objects.filter(ad=ad)}
         category_properties = (
-            CategoryProperty.objects.filter(category=category).select_related('property').prefetch_related('values')
+            CategoryProperty.objects.filter(category=category).select_related('property')
+            .prefetch_related('category_property_values')
         )
         self.prop_ids = []
 
@@ -136,18 +135,17 @@ class DynamicPropertyForm(BootstrapWidgetMixin, forms.Form):
 
             initial = None if self.is_bound else existing_values.get(prop.id)
 
-            if prop.data_type == Property.TEXT:
-                field = forms.CharField(label=prop.name, required=cp.required, initial=initial)
-            elif prop.data_type == Property.NUMBER:
-                field = forms.IntegerField(
-                    label=prop.name, required=cp.required, initial=int(initial) if initial not in (None, '') else None
-                )
-            elif prop.data_type == Property.BOOLEAN:
+            if prop.data_type == DataType.TEXT:
+                field = forms.CharField(label=prop.name, required=cp.is_required, initial=initial)
+            elif prop.data_type == DataType.NUMBER:
+                field = forms.IntegerField(label=prop.name, required=cp.is_required,
+                                           initial=int(initial) if initial not in (None, '') else None)
+            elif prop.data_type == DataType.BOOLEAN:
                 field = forms.BooleanField(label=prop.name, required=False, initial=initial in ('True', 'true', True))
-            elif prop.data_type == Property.CHOICE:
+            elif prop.data_type == DataType.CHOICE:
                 choices = [('', '---------')]
-                choices += [(v.value, v.value) for v in cp.values.all()]
-                field = forms.ChoiceField(label=prop.name, choices=choices, required=cp.required, initial=initial)
+                choices += [(v.value, v.value) for v in cp.category_property_values.all()]
+                field = forms.ChoiceField(label=prop.name, choices=choices, required=cp.is_required , initial=initial)
 
             self.fields[field_name] = field
 

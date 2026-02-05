@@ -1,21 +1,22 @@
 document.addEventListener('DOMContentLoaded', function () {
     // pre-loaded data (category and location hierarchy)
     window.pageContext = JSON.parse(document.getElementById('page-context').textContent);
-    initiateCategoryFlow()
-    initLocationFlow()
+    initiateCategoryFlow();
+    initLocationFlow();
 })
 
 function initiateCategoryFlow() {
     // load main category
-    handleCategoryChange({ sectionId: 'category_section', categoryId: 0, level: 0 })
+    handleCategoryChange({ sectionId: 'category_section', categoryId: 0, level: 0 });
 }
 
 function handleCategoryChange({ sectionId, categoryId = null, level }) {
     removeChildDropdowns({ sectionId: sectionId, fromLevel: level + 1 });
     document.getElementById('id_category').value = '';
-    document.getElementById('property-container').innerHTML = ''
+    document.getElementById('property-container').innerHTML = '';
 
-    if (categoryId === null) return
+    const id = Number(categoryId);
+    if (!Number.isInteger(id)) return;
 
     loadChildren({
         url: `/ads/ajax/category_children/${categoryId}/`,
@@ -28,7 +29,7 @@ function handleCategoryChange({ sectionId, categoryId = null, level }) {
                     options: data.items,
                     valueKey: 'categoryId',
                     onChange: handleCategoryChange
-                })
+                });
                 if (pageContext && pageContext.category_hierarchy) {
                     selectOptionFromArray({
                         selectElement: selectElement,
@@ -36,7 +37,7 @@ function handleCategoryChange({ sectionId, categoryId = null, level }) {
                     });
                 }
             } else {
-                document.getElementById('id_category').value = categoryId
+                document.getElementById('id_category').value = categoryId;
                 let adElement = document.getElementById('id_ad');
                 if (categoryId && adElement) {
                     let adId = adElement.dataset.adId;
@@ -49,7 +50,7 @@ function handleCategoryChange({ sectionId, categoryId = null, level }) {
                 }
             }
         }
-    })
+    });
 }
 
 function initLocationFlow() {
@@ -75,7 +76,7 @@ function initLocationFlow() {
 }
 
 function handleLocationChange({ sectionId, locationId, level }) {
-    clearNeighbourhood({ sectionId: sectionId, level: level })
+    clearNeighbourhood({ sectionId: sectionId, level: level });
     if (!locationId) return;
 
     loadChildren({
@@ -100,7 +101,7 @@ function handleLocationChange({ sectionId, locationId, level }) {
 }
 
 function handleCityChange({ sectionId, cityId, level }) {
-    clearNeighbourhood({ sectionId: sectionId, level: level })
+    clearNeighbourhood({ sectionId: sectionId, level: level });
     if (!cityId) return;
 
     loadChildren({
@@ -174,21 +175,21 @@ function addDropdown({ sectionId, level, labelText, options, valueKey, onChange 
 }
 
 function prepareOption({ value, text }) {
-    let option = document.createElement('option')
-    option.value = value
-    option.text = text
-    return option
+    let option = document.createElement('option');
+    option.value = value;
+    option.text = text;
+    return option;
 }
 
 function removeChildDropdowns({ sectionId, fromLevel }) {
-    const section = document.getElementById(sectionId)
-    const paragraphs = section.querySelectorAll('p')
+    const section = document.getElementById(sectionId);
+    const paragraphs = section.querySelectorAll('p');
 
     paragraphs.forEach(p => {
-        const level = parseInt(p.dataset.level, 10)
+        const level = parseInt(p.dataset.level, 10);
 
         if (!isNaN(level) && level >= fromLevel) {
-            p.remove()
+            p.remove();
         }
     })
 }

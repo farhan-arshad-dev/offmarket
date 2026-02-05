@@ -8,7 +8,7 @@ from ads.models import (
 
 class AdImageInline(admin.StackedInline):
     model = AdImage
-    can_delete = False
+    can_delete = True
     verbose_name_plural = 'AdImages'
     fk_name = 'ad'
 
@@ -56,7 +56,7 @@ class CategoryPropertyValueInline(admin.TabularInline):
 
 @admin.register(CategoryProperty)
 class CategoryPropertyAdmin(admin.ModelAdmin):
-    list_display = ('property', 'category', 'required')
+    list_display = ('property', 'category', 'is_required')
     inlines = [CategoryPropertyValueInline]
 
     def get_queryset(self, request):

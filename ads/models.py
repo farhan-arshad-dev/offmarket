@@ -23,6 +23,7 @@ class Category(BaseModel):
     def has_parent(self):
         return self.parent is not None
 
+    @property
     def get_hierarchy(self):
         current = self
         hierarchy = []
@@ -112,7 +113,6 @@ class Ad(BaseModel):
 class AdImage(BaseModel):
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to=ad_image_upload_to)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
         """
@@ -169,7 +169,7 @@ class Property(BaseModel):
 class CategoryProperty(BaseModel):
     category = models.ForeignKey(Category, related_name='category_properties', on_delete=models.CASCADE)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    required = models.BooleanField(default=False)
+    is_required = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('category', 'property')
@@ -180,7 +180,8 @@ class CategoryProperty(BaseModel):
 
 
 class CategoryPropertyValue(BaseModel):
-    category_property = models.ForeignKey(CategoryProperty, related_name='values', on_delete=models.CASCADE)
+    category_property = models.ForeignKey(CategoryProperty, related_name='category_property_values',
+                                          on_delete=models.CASCADE)
     value = models.CharField(max_length=128)
     depends_on = models.ForeignKey(
         CategoryProperty, null=True, blank=True, related_name='dependent_values', on_delete=models.CASCADE
@@ -200,6 +201,9 @@ class AdPropertyValue(BaseModel):
     prop = models.ForeignKey(Property, on_delete=models.CASCADE)
     value = models.TextField(db_index=True)
 
+    class Meta:
+        unique_together = ('ad', 'prop',)
+
     def __str__(self):
         return f'{self.ad.title} -> {self.prop.name}: {self.value}'
 
@@ -207,12 +211,12 @@ class AdPropertyValue(BaseModel):
     def typed_value(self):
         """Return the value in its proper type"""
         dtype = self.prop.data_type
-        if dtype == Property.NUMBER:
+        if dtype == DataType.NUMBER:
             try:
                 return int(self.value)
             except ValueError:
                 return float(self.value)
-        elif dtype == Property.BOOLEAN:
+        elif dtype == DataType.BOOLEAN:
             return self.value.lower() in ('true', '1', 'yes')
         else:
             # text/choice

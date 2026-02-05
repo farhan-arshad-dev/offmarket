@@ -24,9 +24,7 @@ def get_file_extension(file_obj, lowercase=True) -> Optional[str]:
 def generate_upload_path(base_folder, filename):
     try:
         ext = os.path.splitext(filename)[1].lower()
-        if not ext:
-            ext = ''
-    except Exception:
+    except TypeError:
         ext = ''
 
     timestamp = datetime.datetime.now().strftime('%Y/%m')
