@@ -17,61 +17,40 @@ function handleCategoryChange({ sectionId, categoryId = null, level }) {
 
     const id = Number(categoryId);
     if (!Number.isInteger(id)) return;
-
-    loadChildren({
+    loadAndRenderDropdown({
         url: `/ads/ajax/category_children/${categoryId}/`,
-        callback: data => {
-            if (data.items.length) {
-                let selectElement = addDropdown({
-                    sectionId: sectionId,
-                    level: level + 1,
-                    labelText: 'Category: ' + level,
-                    options: data.items,
-                    valueKey: 'categoryId',
-                    onChange: handleCategoryChange
+        sectionId: sectionId,
+        level: level + 1,
+        labelText: 'Category: ' + level,
+        valueKey: 'categoryId',
+        onChange: handleCategoryChange,
+        preselectIds: pageContext?.category_hierarchy?.map(category => category.id) || null,
+        onEmpty: () => {
+            document.getElementById('id_category').value = categoryId;
+            let adElement = document.getElementById('id_ad');
+
+            if (categoryId && adElement) {
+                let adId = adElement.dataset.adId;
+                loadChildren({
+                    url: `/ads/ajax/load-category-properties/?category_id=${categoryId}&ad_id=${adId}`,
+                    callback: data => {
+                        document.getElementById('property-container').innerHTML = data.html;
+                    }
                 });
-                if (pageContext && pageContext.category_hierarchy) {
-                    selectOptionFromArray({
-                        selectElement: selectElement,
-                        targetArray: pageContext.category_hierarchy.map(category => category.id)
-                    });
-                }
-            } else {
-                document.getElementById('id_category').value = categoryId;
-                let adElement = document.getElementById('id_ad');
-                if (categoryId && adElement) {
-                    let adId = adElement.dataset.adId;
-                    loadChildren({
-                        url: `/ads/ajax/load-category-properties/?category_id=${categoryId}&ad_id=${adId}`,
-                        callback: data => {
-                            document.getElementById('property-container').innerHTML = data.html;
-                        }
-                    });
-                }
             }
         }
     });
 }
 
 function initLocationFlow() {
-    loadChildren({
+    loadAndRenderDropdown({
         url: '/ads/ajax/locations/',
-        callback: data => {
-            let selectElement = addDropdown({
-                sectionId: 'location_section',
-                level: 1,
-                labelText: 'Location',
-                options: data.items,
-                valueKey: 'locationId',
-                onChange: handleLocationChange
-            });
-            if (pageContext.location_hierarchy && pageContext.location_hierarchy.location) {
-                selectOptionFromArray({
-                    selectElement: selectElement,
-                    targetArray: [pageContext.location_hierarchy.location.id]
-                });
-            }
-        }
+        sectionId: 'location_section',
+        level: 1,
+        labelText: 'Location',
+        valueKey: 'locationId',
+        onChange: handleLocationChange,
+        preselectIds: pageContext?.location_hierarchy?.location ? [pageContext.location_hierarchy.location.id] : null
     });
 }
 
@@ -79,51 +58,28 @@ function handleLocationChange({ sectionId, locationId, level }) {
     clearNeighbourhood({ sectionId: sectionId, level: level });
     if (!locationId) return;
 
-    loadChildren({
+    loadAndRenderDropdown({
         url: `/ads/ajax/cities/${locationId}/`,
-        callback: data => {
-            let selectElement = addDropdown({
-                sectionId: sectionId,
-                level: level + 1,
-                labelText: 'City',
-                options: data.items,
-                valueKey: 'cityId',
-                onChange: handleCityChange
-            });
-            if (pageContext.location_hierarchy && pageContext.location_hierarchy.city) {
-                selectOptionFromArray({
-                    selectElement: selectElement,
-                    targetArray: [pageContext.location_hierarchy.city.id]
-                });
-            }
-        }
+        sectionId,
+        level: level + 1,
+        labelText: 'City',
+        valueKey: 'cityId',
+        onChange: handleCityChange,
+        preselectIds: pageContext?.location_hierarchy?.city ? [pageContext.location_hierarchy.city.id] : null
     });
 }
 
 function handleCityChange({ sectionId, cityId, level }) {
     clearNeighbourhood({ sectionId: sectionId, level: level });
     if (!cityId) return;
-
-    loadChildren({
+    loadAndRenderDropdown({
         url: `/ads/ajax/neighbourhoods/${cityId}/`,
-        callback: data => {
-            if (data.items.length) {
-                let selectElement = addDropdown({
-                    sectionId: sectionId,
-                    level: level + 1,
-                    labelText: 'Neighbourhood',
-                    options: data.items,
-                    valueKey: 'neighbourhoodId',
-                    onChange: handleNeighbourhoodChange
-                });
-                if (pageContext.location_hierarchy && pageContext.location_hierarchy.neighbourhood) {
-                    selectOptionFromArray({
-                        selectElement: selectElement,
-                        targetArray: [pageContext.location_hierarchy.neighbourhood.id]
-                    });
-                }
-            }
-        }
+        sectionId,
+        level: level + 1,
+        labelText: 'Neighbourhood',
+        valueKey: 'neighbourhoodId',
+        onChange: handleNeighbourhoodChange,
+        preselectIds: pageContext?.location_hierarchy?.neighbourhood ? [pageContext.location_hierarchy.neighbourhood.id] : null
     });
 }
 
@@ -134,6 +90,27 @@ function handleNeighbourhoodChange({ sectionId, neighbourhoodId }) {
 function clearNeighbourhood({ sectionId, level }) {
     removeChildDropdowns({ sectionId: sectionId, fromLevel: level + 1 });
     document.getElementById('id_neighbourhood').value = '';
+}
+
+function loadAndRenderDropdown({ url, sectionId, level, labelText, valueKey, onChange, preselectIds = null, onEmpty = null }) {
+    loadChildren({
+        url,
+        callback: data => {
+            if (!data.items || !data.items.length) {
+                if (typeof onEmpty === 'function') {
+                    onEmpty();
+                }
+                return;
+            }
+            let selectElement = addDropdown({
+                sectionId: sectionId, level: level, labelText: labelText,
+                options: data.items, valueKey: valueKey, onChange: onChange
+            });
+            if (preselectIds) {
+                selectOptionFromArray({ selectElement: selectElement, targetArray: preselectIds });
+            }
+        }
+    });
 }
 
 function loadChildren({ url, callback }) {
