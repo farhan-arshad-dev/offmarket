@@ -18,10 +18,17 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# full path to .env
 ENV_PATH = os.path.join(BASE_DIR, '.env')
 load_dotenv(ENV_PATH)
 
@@ -48,8 +55,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    "dashboard",
+    "core",
     "accounts",
+    "ads",
 ]
 
 MIDDLEWARE = [
@@ -136,9 +144,13 @@ STATIC_URL = "static/"
 # Centralize authentication-related navigation
 # Tells Django where to send the user after successful login, if no next
 # parameter exists.
-LOGIN_REDIRECT_URL = 'dashboard:dashboard'
+LOGIN_REDIRECT_URL = 'home'
 # Tells Django where to send unauthenticated users when they try to access a
 # protected view.
 LOGIN_URL = 'accounts:login'
 # Tells Django where to redirect after logout.
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+ADS_MAX_IMAGES_PER_AD = 20
+ADS_MAX_IMAGE_SIZE_MB = 5
+ADS_ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']
