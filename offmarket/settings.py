@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -123,6 +124,23 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+TESTING = "test" in sys.argv or "PYTEST_VERSION" in os.environ
+
+if not TESTING:
+    INSTALLED_APPS = [
+        *INSTALLED_APPS,
+        "debug_toolbar",
+    ]
+
+    MIDDLEWARE = [
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+        *MIDDLEWARE,
+    ]
+
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
