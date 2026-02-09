@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
 from ads.models import Ad, AdPropertyValue, Category, City, Location, Property
 from ads.serializers import AdCreateSerializer, AdSerializer, CategorySerializer, LocationWithCitiesSerializer
+from ads.tasks import send_ad_confimation_email
 from core.permissions import IsOwnerOrReadOnly
 
 
@@ -167,7 +168,11 @@ class AdViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        ad = serializer.save(user=self.request.user)
+        print(ad.id)
+        print(self.request.user.email)
+        send_ad_confimation_email.delay(ad.id, self.request.user.email)
+
 
 class AdCreateConfigAPIView(APIView):
     permission_classes = [IsAuthenticated]
