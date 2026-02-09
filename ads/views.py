@@ -56,7 +56,7 @@ class AdFormMixin(LoginRequiredMixin):
         else:
             category_id = self.request.POST.get('category')
 
-        category = (Category.objects.filter(id=category_id).first() if category_id else None)
+        category = Category.objects.filter(id=category_id).first()
 
         context['property_form'] = DynamicPropertyForm(post_data, category=category, ad=ad)
 
