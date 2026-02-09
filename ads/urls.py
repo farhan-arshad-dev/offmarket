@@ -1,9 +1,6 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter
 
-from ads.views import (
-    AdCreateConfigAPIView, AdCreateView, AdDeleteView, AdDetailView, AdListView, AdUpdateView, AdViewSet,
-)
+from ads.views import AdCreateView, AdDeleteView, AdDetailView, AdListView, AdUpdateView
 from ads.views_ajax import (
     CitiesView, LoadCategoryChildrenView, LoadCategoryPropertiesView, LocationView, NeighbourhoodView,
 )
@@ -25,11 +22,4 @@ urlpatterns = [
     path('ajax/neighbourhoods/<int:city_id>/', NeighbourhoodView.as_view(), name='ajax-neighbourhoods'),
 
     path('ajax/load-category-properties/', LoadCategoryPropertiesView.as_view(), name='load_category_properties'),
-
-    path('create-config/', AdCreateConfigAPIView.as_view()),
 ]
-
-router = DefaultRouter()
-router.register('ads', AdViewSet, basename='ad')
-
-urlpatterns += router.urls

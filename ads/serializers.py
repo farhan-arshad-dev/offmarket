@@ -65,22 +65,13 @@ class AdSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def get_user(self, obj):
-        serializer = UserPublicSerializer(
-            obj.user,
-            context={
-                **self.context,
-                'show_phone_number': obj.show_phone_number,
-            }
-        )
+        serializer = UserPublicSerializer(obj.user,
+                                          context={**self.context, 'show_phone_number': obj.show_phone_number})
         return serializer.data
 
     def get_property_values(self, obj):
         return [
-            {
-                'id': pv.prop.id,
-                'name': pv.prop.name,
-                'value': pv.typed_value,
-            }
+            {'id': pv.prop.id, 'name': pv.prop.name, 'value': pv.typed_value}
             for pv in obj.property_values.select_related('prop')
         ]
 
@@ -152,7 +143,6 @@ class AdCreateSerializer(serializers.ModelSerializer):
         property_values_data = validated_data.pop('properties', [])
 
         ad = Ad.objects.create(**validated_data)
-
         AdImage.objects.bulk_create([AdImage(ad=ad, image=image_file) for image_file in images_data])
 
         prop_ids = [pv['prop_id'] for pv in property_values_data]
@@ -162,10 +152,10 @@ class AdCreateSerializer(serializers.ModelSerializer):
             for pv in property_values_data
             if pv['prop_id'] in properties
         ]
+
         AdPropertyValue.objects.bulk_create(
             ad_property_values, update_conflicts=True, unique_fields=['ad', 'prop'], update_fields=['value']
         )
-
         return ad
 
     @transaction.atomic
@@ -209,10 +199,7 @@ class CategoryPropertyValueSerializer(serializers.ModelSerializer):
 
 
 class CategoryPropertySerializer(serializers.ModelSerializer):
-    values = CategoryPropertyValueSerializer(
-        source='category_property_values',  # matches your related_name
-        many=True
-    )
+    values = CategoryPropertyValueSerializer(source='category_property_values', many=True)
 
     class Meta:
         model = CategoryProperty
@@ -229,9 +216,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_children(self, obj):
         children_qs = obj.children.all()
+
         if children_qs.exists():
             serializer = CategorySerializer(children_qs, many=True)
             return serializer.data
+
         return None
 
 class NeighbourhoodSerializer(serializers.ModelSerializer):

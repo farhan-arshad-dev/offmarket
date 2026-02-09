@@ -188,8 +188,10 @@ class AdViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
         if self.action in ['update', 'partial_update', 'destroy',]:
             return queryset.filter(user=self.request.user)
+
         return queryset
 
     def perform_create(self, serializer):

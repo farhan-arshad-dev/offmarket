@@ -29,8 +29,11 @@ urlpatterns = [
     path('ads/', include('ads.urls')),
     path('admin/', admin.site.urls),
     path('', AdListView.as_view(), name='home'),
+
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/', include('accounts.api.urls')),
+    path('api/', include('ads.api.urls')),
 ]
 
 if settings.DEBUG:

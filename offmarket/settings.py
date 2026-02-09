@@ -168,5 +168,3 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 ADS_MAX_IMAGES_PER_AD = 20
 ADS_MAX_IMAGE_SIZE_MB = 5
 ADS_ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']
-
-APPEND_SLASH = False

@@ -28,14 +28,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        instance.save()
 
+        instance.save()
         profile = getattr(instance, 'profile', None)
+
         if not profile:
             profile = Profile.objects.create(user=instance)
 
         for attr, value in profile_data.items():
             setattr(profile, attr, value)
-        profile.save()
 
+        profile.save()
         return instance
