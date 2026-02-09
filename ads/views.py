@@ -45,7 +45,6 @@ class AdListView(ListView):
             city_choices.append((f'CITY_{city.id}', city.name))
 
         context['city_choices'] = city_choices
-
         return context
 
 
