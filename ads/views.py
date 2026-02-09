@@ -4,6 +4,8 @@ from django.db.models import Prefetch
 from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 from rest_framework import filters, viewsets
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -170,6 +172,7 @@ class AdViewSet(viewsets.ModelViewSet):
 class AdCreateConfigAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(cache_page(60 * 60 * 2, key_prefix='ad_creation_form'))
     def get(self, request):
         categories = (Category.objects.filter(parent__isnull=True)
                       .prefetch_related('category_properties', 'category_properties__category_property_value'))
