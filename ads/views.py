@@ -1,13 +1,19 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from rest_framework import filters, viewsets
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
-from ads.models import Ad, AdPropertyValue, Category, City, Property
+from ads.models import Ad, AdPropertyValue, Category, City, Location, Property
+from ads.serializers import AdCreateSerializer, AdSerializer, CategorySerializer, LocationWithCitiesSerializer
+from core.permissions import IsOwnerOrReadOnly
 
 
 class AdListView(ListView):
@@ -162,3 +168,46 @@ class AdDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
+
+class AdViewSet(viewsets.ModelViewSet):
+    queryset = (
+        Ad.objects.select_related('user', 'user__profile', 'category', 'neighbourhood', 'neighbourhood__city',
+                                  'neighbourhood__city__location').prefetch_related('images', 'property_values__prop')
+    )
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'description', 'category__name', 'neighbourhood__city__location__name']
+
+    def get_serializer_class(self):
+
+        if self.action in ('create', 'update', 'partial_update'):
+            return AdCreateSerializer
+
+        return AdSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.action in ['update', 'partial_update', 'destroy',]:
+            return queryset.filter(user=self.request.user)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class AdCreateConfigAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        categories = (Category.objects.filter(parent__isnull=True)
+                      .prefetch_related('category_properties', 'category_properties__category_property_value'))
+        locations = (Location.objects.prefetch_related(
+            Prefetch('cities', queryset=City.objects.prefetch_related('neighbourhoods')))
+        )
+
+        return Response({
+            'categories': CategorySerializer(categories, many=True).data,
+            'locations': LocationWithCitiesSerializer(locations, many=True).data,
+        })

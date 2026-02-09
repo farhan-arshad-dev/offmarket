@@ -21,5 +21,5 @@ urlpatterns = [
     path('ajax/cities/<int:location_id>/', CitiesView.as_view(), name='ajax-cities'),
     path('ajax/neighbourhoods/<int:city_id>/', NeighbourhoodView.as_view(), name='ajax-neighbourhoods'),
 
-    path('ajax/load-category-properties/', LoadCategoryPropertiesView.as_view(), name='load_category_properties')
+    path('ajax/load-category-properties/', LoadCategoryPropertiesView.as_view(), name='load_category_properties'),
 ]
