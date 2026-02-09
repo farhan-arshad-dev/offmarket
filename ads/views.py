@@ -1,12 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
-from ads.models import Ad, AdPropertyValue, Category, Property
+from ads.models import Ad, AdPropertyValue, Category, City, Property
 
 
 class AdListView(ListView):
@@ -16,7 +17,35 @@ class AdListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related('images')
+        queryset = super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related('images')
+        keyword = self.request.GET.get('q', '').strip()
+        city_select = self.request.GET.get('city', '')
+
+        if keyword:
+            queryset = queryset.filter(
+                Q(title__icontains=keyword)
+                | Q(description__icontains=keyword)
+                | Q(category__name__icontains=keyword)
+            )
+
+        if city_select and city_select.startswith('CITY_'):
+            city_id = int(city_select.replace('CITY_', ''))
+            queryset = queryset.filter(
+                neighbourhood__city_id=city_id
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cities = City.objects.prefetch_related().all()
+
+        city_choices = []
+        for city in cities.all():
+            city_choices.append((f'CITY_{city.id}', city.name))
+
+        context['city_choices'] = city_choices
+        return context
 
 
 class AdDetailView(DetailView):
