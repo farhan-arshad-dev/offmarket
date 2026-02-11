@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    'django_elasticsearch_dsl',
     "core",
     "accounts",
     "ads",
@@ -141,6 +142,12 @@ if not TESTING:
     INTERNAL_IPS = [
         "127.0.0.1",
     ]
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'http://localhost:9200/',
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
