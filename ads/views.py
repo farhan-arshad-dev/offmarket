@@ -33,12 +33,13 @@ class AdListView(ListView):
                                     fuzziness='auto'))
 
         try:
-            city_id = int(city_select.replace('CITY_', ''))
-            search = search.filter('term', neighbourhood__city_id=city_id)
+            if city_select and city_select.startswith('CITY_'):
+                city_id = int(city_select.replace('CITY_', ''))
+                search = search.filter('term', neighbourhood__city_id=city_id)
         except ValueError:
             pass
 
-        response = search.execute()
+        response = search.scan()
         ad_ids = [hit.id for hit in response]
 
         if not ad_ids:
