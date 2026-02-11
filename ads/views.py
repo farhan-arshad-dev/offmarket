@@ -56,8 +56,9 @@ class AdDetailView(DetailView):
     context_object_name = 'ad'
 
     def get_queryset(self):
-        return super().get_queryset().select_related('user', 'user__profile', 'category', 'neighbourhood')\
-            .prefetch_related('images')
+        return super().get_queryset().select_related(
+            'user', 'user__profile', 'category', 'neighbourhood'
+        ).prefetch_related('images')
 
 class AdFormMixin(LoginRequiredMixin):
     model = Ad
