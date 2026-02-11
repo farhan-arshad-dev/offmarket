@@ -145,7 +145,7 @@ if not TESTING:
 
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': 'http://localhost:9200/',
+        'hosts': os.getenv('ELASTICSEARCH_URL', 'http://localhost:9200/'),
     },
 }
 

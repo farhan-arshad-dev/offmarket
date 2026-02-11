@@ -32,9 +32,11 @@ class AdListView(ListView):
             search = search.query(Q('multi_match', query=keyword, fields=['title^3', 'description', 'category.name'],
                                     fuzziness='auto'))
 
-        if city_select and city_select.startswith('CITY_'):
+        try:
             city_id = int(city_select.replace('CITY_', ''))
             search = search.filter('term', neighbourhood__city_id=city_id)
+        except ValueError:
+            pass
 
         response = search.execute()
         ad_ids = [hit.id for hit in response]
