@@ -1,13 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
-from ads.models import Ad, AdPropertyValue, Category, City, Property
+from ads.models import Ad, AdImage, AdPropertyValue, Category, City, Property
 
 
 class AdListView(ListView):
@@ -17,7 +17,9 @@ class AdListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related('images')
+        queryset = super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related(
+            Prefetch('images', queryset=AdImage.objects.order_by('id'))
+        )
         keyword = self.request.GET.get('q', '').strip()
         city_select = self.request.GET.get('city', '')
 
@@ -54,7 +56,9 @@ class AdDetailView(DetailView):
     context_object_name = 'ad'
 
     def get_queryset(self):
-        return super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related('images')
+        return super().get_queryset().select_related(
+            'user', 'user__profile', 'category', 'neighbourhood'
+        ).prefetch_related('images')
 
 class AdFormMixin(LoginRequiredMixin):
     model = Ad
@@ -85,7 +89,7 @@ class AdFormMixin(LoginRequiredMixin):
         else:
             category_id = self.request.POST.get('category')
 
-        category = Category.objects.filter(id=category_id).first()
+        category = (Category.objects.filter(id=category_id).first() if category_id else None)
 
         context['property_form'] = DynamicPropertyForm(post_data, category=category, ad=ad)
 
