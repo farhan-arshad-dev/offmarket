@@ -7,8 +7,9 @@ from .models import Ad
 @registry.register_document
 class AdDocument(Document):
     category = fields.ObjectField(properties={'id': fields.IntegerField(), 'name': fields.TextField()})
-    neighbourhood = fields.ObjectField(properties={'id': fields.IntegerField(), 'name': fields.TextField(),
-                                                   'city_id': fields.IntegerField()})
+    neighbourhood = fields.ObjectField(
+        properties={'id': fields.IntegerField(), 'name': fields.TextField(), 'city_id': fields.IntegerField()}
+    )
 
     class Index:
         name = 'ads'
