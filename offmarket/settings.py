@@ -14,6 +14,7 @@ import os
 import sys
 from pathlib import Path
 
+import sentry_sdk
 from dotenv import load_dotenv
 
 
@@ -148,6 +149,15 @@ ELASTICSEARCH_DSL = {
         'hosts': os.getenv('ELASTICSEARCH_URL', 'http://localhost:9200/'),
     },
 }
+
+sentry_sdk.init(
+    dsn=os.getenv('SENTRY_DNS'),
+    send_default_pii=True,
+    traces_sample_rate=1.0,
+    profile_session_sample_rate=1.0,
+    profile_lifecycle="trace",
+    enable_logs=True,
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
