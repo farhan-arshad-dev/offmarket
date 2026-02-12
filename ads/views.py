@@ -1,11 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
-from django.db.models import Prefetch, Q
+from django.db.models import Case, Prefetch, When
 from django.forms import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from elasticsearch_dsl import Q
 
+from ads.documents import AdDocument
 from ads.forms import AdForm, AdImageCreateFormSet, AdImageUpdateFormSet, DynamicPropertyForm, ProfileInlineForm
 from ads.models import Ad, AdImage, AdPropertyValue, Category, City, Property
 
@@ -17,35 +19,42 @@ class AdListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related(
-            Prefetch('images', queryset=AdImage.objects.order_by('id'))
-        )
         keyword = self.request.GET.get('q', '').strip()
         city_select = self.request.GET.get('city', '')
 
-        if keyword:
-            queryset = queryset.filter(
-                Q(title__icontains=keyword)
-                | Q(description__icontains=keyword)
-                | Q(category__name__icontains=keyword)
-            )
+        if not keyword and not city_select:
+            return (super().get_queryset().select_related('user', 'category', 'neighbourhood').prefetch_related(
+                Prefetch('images', queryset=AdImage.objects.order_by('id'))))
 
-        if city_select and city_select.startswith('CITY_'):
-            city_id = int(city_select.replace('CITY_', ''))
-            queryset = queryset.filter(
-                neighbourhood__city_id=city_id
-            )
+        search = AdDocument.search()
+
+        if keyword:
+            search = search.query(Q('multi_match', query=keyword, fields=['title^3', 'description', 'category.name'],
+                                    fuzziness='auto'))
+
+        try:
+            if city_select and city_select.startswith('CITY_'):
+                city_id = int(city_select.replace('CITY_', ''))
+                search = search.filter('term', neighbourhood__city_id=city_id)
+        except ValueError:
+            pass
+
+        response = search.scan()
+        ad_ids = [hit.id for hit in response]
+
+        if not ad_ids:
+            return Ad.objects.none()
+
+        preserved = Case(*[When(id=id, then=pos)for pos, id in enumerate(ad_ids)])
+        queryset = (Ad.objects.filter(id__in=ad_ids).select_related('user', 'category', 'neighbourhood')
+                    .prefetch_related(Prefetch('images', queryset=AdImage.objects.order_by('id'))).order_by(preserved))
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cities = City.objects.prefetch_related().all()
-
-        city_choices = []
-        for city in cities.all():
-            city_choices.append((f'CITY_{city.id}', city.name))
-
+        cities = City.objects.all()
+        city_choices = [(f'CITY_{city.id}', city.name)for city in cities]
         context['city_choices'] = city_choices
         return context
 
